@@ -20,10 +20,12 @@ function isEditable(el){
 function pasteContent(event){
 if(event.altKey){
     const key = event.key;
+    const selection = window.getSelection();
+
     switch(key) {
+
     case 'l':
     case 'L':
-        const selection = window.getSelection();
         if (selection && selection.rangeCount > 0) {
           selection.collapseToEnd(); 
         }
@@ -37,6 +39,13 @@ if(event.altKey){
     case 'H':
     case 'g':
     case 'G':
+        if (selection && selection.rangeCount > 0) {
+          selection.collapseToEnd(); 
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        document.execCommand('insertText', false, ".postgain(slider(1, 0, 1, 0.0git     8))");
+        break;
      default:
         break; 
       
@@ -244,12 +253,12 @@ window.addEventListener('keydown', (event)=> {
         changeSlider(-1);
         return;
     }
-     if(event.key === 'ArrowDown' || event.key === 'm'){
+     if(event.key === 'M' || event.key === 'm'){
         event.preventDefault();
         muteSlider();
         return;
     }
-     if(event.key === 'ArrowDown' || event.key === 'n'){
+     if(event.key === 'N' || event.key === 'n'){
         event.preventDefault();
         maxSlider();
         return;
