@@ -31,12 +31,19 @@ if(event.altKey){
         }
         event.preventDefault();
         event.stopPropagation();
-        document.execCommand('insertText', false, ".lpf(slider(5000, 50, 5000, 25)).lpq(2.5)");
+        document.execCommand('insertText', false, ".lpf(slider(5000, 50, 5000, 50)).lpq(2.5)");
         
         
         break;
     case 'h':
     case 'H':
+        if (selection && selection.rangeCount > 0) {
+          selection.collapseToEnd(); 
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        document.execCommand('insertText', false, ".hpf(slider(20, 20, 5000, 50)).hpq(2.5)");
+        break;
     case 'g':
     case 'G':
         if (selection && selection.rangeCount > 0) {
@@ -44,7 +51,7 @@ if(event.altKey){
         }
         event.preventDefault();
         event.stopPropagation();
-        document.execCommand('insertText', false, ".postgain(slider(1, 0, 1, 0.0git     8))");
+        document.execCommand('insertText', false, ".postgain(slider(1, 0, 1, 0.08))");
         break;
      default:
         break; 
@@ -191,55 +198,61 @@ function changeSlider(direction){
     slider.dispatchEvent(new Event('input', { bubbles: true }));
     slider.dispatchEvent(new Event('change', { bubbles: true }));
 }
+// Hilfsfunktion zum sauberen Verlassen des Mixer-Modus
+function exitMixerMode() {
+    isMixerMode = false;
+    disableSliderBadges();
+    
+    // Fokus und Styling vom aktuellen Slider nehmen
+    if (activeSliderIndex !== null) {
+        const sliders = getSliders();
+        if (sliders[activeSliderIndex]) {
+            sliders[activeSliderIndex].style.outline = "none";
+            sliders[activeSliderIndex].style.boxShadow = "none";
+        }
+        activeSliderIndex = null;
+    }
+    console.log("Mixer active?:", isMixerMode);
+}
 
 window.addEventListener('keydown', (event)=> {
     console.log("Taste: ", event.key, "code", event.code);
-      // Hotkey = M (oder m)
-      const isToggleHotkey = event.altKey && (event.key === 'm' || event.key === 'M' || event.code === 'KeyM');
-      const isRangeSlider = event.target.tagName === 'INPUT' && event.target.type === 'range';
-      const ActiveElement = getDeepActiveElement();
-      
- 
+    const isToggleHotkey = event.altKey && (event.key === 'm' || event.key === 'M' || event.code === 'KeyM');
+    const ActiveElement = getDeepActiveElement();
+    lastEvent = event;
 
- if (isToggleHotkey) {
+    if (isToggleHotkey) {
         ActiveElement.blur();
-        event.preventDefault(); // Blockiert das Einfügen von Sonderzeichen (wie "µ") im Editor!
-        isMixerMode = !isMixerMode;
-     
-        console.log("Mixer active?:", isMixerMode);
+        event.preventDefault(); 
         
-        // Badges ein- oder ausblenden:
-        if (isMixerMode) {
+        if (!isMixerMode) {
+            isMixerMode = true;
+            console.log("Mixer active?:", isMixerMode);
             updateSliderBadges();
         } else {
-            disableSliderBadges();
-            
-            // Optional: Fokus vom Slider nehmen, wenn wir den Modus beenden
-            if (activeSliderIndex !== null) {
-                const sliders = getSliders();
-                if (sliders[activeSliderIndex]) {
-                    sliders[activeSliderIndex].style.outline = "none";
-                    sliders[activeSliderIndex].style.boxShadow = "none";
-                }
-                activeSliderIndex = null;
-            }
+            exitMixerMode();
         }
         return;
     }
 
     if(isEditable(ActiveElement)){
-    pasteContent(event);
-   
-    return;
- }   
+        pasteContent(event);
+        return;
+    }   
 
     if(!isMixerMode){
         return;
     }
+
     if(event.key >= '1' && event.key <= '9'){
         event.preventDefault();
-        const index = Number(event.key)-1;
-        selectSliders(index);
+        const index = Number(event.key) - 1;
+        
+        if (activeSliderIndex === index) {
+            exitMixerMode();
+        } else {
+            selectSliders(index);
+        }
         return;
     }
 
@@ -253,12 +266,12 @@ window.addEventListener('keydown', (event)=> {
         changeSlider(-1);
         return;
     }
-     if(event.key === 'M' || event.key === 'm'){
+    if(event.key === 'M' || event.key === 'm'){
         event.preventDefault();
         muteSlider();
         return;
     }
-     if(event.key === 'N' || event.key === 'n'){
+    if(event.key === 'N' || event.key === 'n'){
         event.preventDefault();
         maxSlider();
         return;
